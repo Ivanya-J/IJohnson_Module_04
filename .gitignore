@@ -2,8 +2,8 @@
 .Rhistory
 .RData
 .Ruserdata
-*.Rproj
 .Rdata
 .httr-oauth
 .DS_Store
 .quarto
+*.Rproj
