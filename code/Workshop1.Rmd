@@ -1,8 +1,8 @@
 ---
 title: "MB5370 Module 04. Workshop 1 - Introduction"
-author: "Ben Cresswell"
+author: "Ivanya Johnson"
 output: html_document
-date: "2024-03-22"
+date: "2024-08-26"
 ---
 
 ```{r setup, include=FALSE}
