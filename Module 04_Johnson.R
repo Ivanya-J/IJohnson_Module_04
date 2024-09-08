@@ -2,8 +2,6 @@
 
 ## Getting Gib Set Up ####
 
-# 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 PAT for GIT HUB
-
 gitcreds::gitcreds_set()
 # install.packages("tidyverse")
 library(tidyverse)
@@ -17,6 +15,10 @@ library(conflicted)
 library(dplyr)
 conflicts_prefer(dplyr::filter)
 conflicts_prefer(dplyr::lag)
+
+## Palmer Penguins Data ####
+library(palmerpenguins)
+library(ggthemes)
 
 ## First ggplot ####
 
@@ -122,10 +124,54 @@ demo <- tribble(
   "Ideal",      21551
 )
 
-ggplot(data = demo) +
-  geom_bar(mapping = aes(x = cut, y = freq), stat = "identity")
+ggplot(data = demo) + geom_bar(mapping = aes(x = cut, y = freq), stat = "identity")
 
-## Palmer Penguins Data ####
-library(palmerpenguins)
-library(ggthemes)
+ggplot(data = diamonds) + geom_bar(mapping = aes(x = cut, y = stat(prop), group = 1))
 
+ggplot(data = diamonds) + stat_summary(mapping = aes(x = cut, y = depth), fun.min = min, fun.max = max, fun = median)
+
+## Aesthetic Adjustment ####
+
+ggplot(data = diamonds) + geom_bar(mapping = aes(x = cut, color = cut)) # Has grey bars with a highlighted color around each bar
+
+ggplot(data = diamonds) + geom_bar(mapping = aes(x = cut, fill = cut)) # Changes the color for each bar
+
+ggplot(data = diamonds) + geom_bar(mapping = aes(x = cut, fill = clarity)) # Stacks the bars and has a different color for each clarity
+
+# To alter transparency (alpha)
+ggplot(data = diamonds, mapping = aes(x = cut, fill = clarity)) + geom_bar(alpha = 1/5, position = "identity")
+
+# To color the bar outlines with no fill color
+ggplot(data = diamonds, mapping = aes(x = cut, color = clarity)) + geom_bar(fill = NA, position = "identity")
+
+# position = "fill" works like stacking, but makes each set of stacked bars the same height
+
+ggplot(data = diamonds) + geom_bar(mapping = aes(x = cut, fill = clarity), position = "fill")
+
+# position = "dodge" places overlapping objects directly beside on another
+
+ggplot(data = diamonds) + geom_bar(mapping = aes(x = cut, fill = clarity), position = "dodge")
+
+# position = "jitter" adds a small amount of random noise to each point so it doesn't overplot when points overlap
+
+ggplot(data = mpg) + geom_point(mapping = aes(x = displ, y = hwy), position = "jitter")
+
+## Workshop 2: Using ggplot2 for Communication ####
+
+## Labels ####
+
+## Annotations ####
+
+## Scales ####
+
+## Axis Ticks ####
+
+## Legends and Color Schemes ####
+
+## Replacing a Scale ####
+
+## Themes ####
+
+## Saving/Exporting Plots ####
+
+## Workshop 3 - Data Wrangling ####
