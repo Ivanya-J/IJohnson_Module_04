@@ -12,7 +12,7 @@ knitr::opts_chunk$set(echo = TRUE)
 
 # Install and load tidyverse packages
 ```{r}
-## install.packages("tidyverse") # Delete this line once installed
+## install.packages("tidyverse") ; Delete this line once installed
 library("tidyverse")
 ```
 
