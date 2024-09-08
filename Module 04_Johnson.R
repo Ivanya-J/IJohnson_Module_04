@@ -322,15 +322,90 @@ ggsave("Mod4-Workshop2-plot.pdf")
 
 ## Tidy Data ####
 
+library(tidyverse)
+
+# Compute rate per 10,000
+table1 %>% 
+  mutate(rate = cases / population * 10000)
+#> # A tibble: 6 × 5
+#>   country      year  cases population  rate
+#>   <chr>       <dbl>  <dbl>      <dbl> <dbl>
+#> 1 Afghanistan  1999    745   19987071 0.373
+#> 2 Afghanistan  2000   2666   20595360 1.29 
+#> 3 Brazil       1999  37737  172006362 2.19 
+#> 4 Brazil       2000  80488  174504898 4.61 
+#> 5 China        1999 212258 1272915272 1.67 
+#> 6 China        2000 213766 1280428583 1.67
+
+# Compute cases per year
+table1 %>% 
+  count(year, wt = cases)
+#> # A tibble: 2 × 2
+#>    year      n
+#>   <dbl>  <dbl>
+#> 1  1999 250740
+#> 2  2000 296920
+
+# Visualise changes over time
+library(ggplot2)
+ggplot(table1, aes(year, cases)) + 
+  geom_line(aes(group = country), colour = "grey50") + 
+  geom_point(aes(colour = country))
+
 ##  Exercise 3 ####
+
+# 1.
+
+# 2. 
 
 ## Pivoting Data ####
 
 ## Lengthening Data sets ####
 
+# Pivoting data set longer is the most common tidying issue. pivot_longer() makes data sets "longer" by increasing the # of rows and decreasing the number of columns. pivot_longer() splits the data set by column, and reformats it into the tidy format of observations as rows, columns as variables, and values as cell entries.
+
+billboard
+
+billboard |>
+  pivot_longer(
+    cols = starts_with("wk"),
+    names_to = "week",
+    values_to = "rank"
+  )
+
+billboard |>
+  pivot_longer(
+    cols = starts_with("wk"),
+    names_to = "week",
+    values_to = "rank",
+    values_drop_na = TRUE
+  ) # This is used to drop any NA values
+
 ## Pivoting Longer ####
 
+df <- tribble(
+  ~id, ~bp1, ~bp2,
+  "A", 100, 120,
+  "B", 140, 115,
+  "C", 120, 125
+) # Created a data set called 'df' with three variables and their associated values
+# New tidy data set with three variables:
+# 1. id (already exists)
+# 2. measurment (column names)
+# 3. value (cell values)
+
+df |>
+  pivot_longer(
+    cols = bp1:bp2,
+    names_to = "measurement",
+    values_to = "value"
+  )
+
 ## Widening Data sets ####
+
+# Widening a data set is the opposite of lengthening and we do so using the pivot_wider() function. pivot_wider() allows us to handle an observation if it's scattered across *multiple rows*.
+
+cms_patient_experience
 
 ## Pivoting Wider ####
 
