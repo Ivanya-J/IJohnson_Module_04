@@ -2,7 +2,7 @@
 
 ## Getting Gib Set Up ####
 
- # gitcreds::gitcreds_set()
+ gitcreds::gitcreds_set()
 # install.packages("tidyverse")
 library(tidyverse)
 
