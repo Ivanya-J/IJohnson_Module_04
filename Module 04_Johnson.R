@@ -662,8 +662,128 @@ weather # Gives weather at each NYC airport for each hour
 # Primary key uniquely ids an observation in its own table.
 # Foreign key uniquely ids an observation in another table
 
+planes %>%
+  count(tailnum) %>%
+  filter(n > 1)
+
+weather %>%
+  count(year, month, day, hour, origin) %>%
+  filter(n > 1)
+
+flights %>%
+  count(year, month, day, flight) %>%
+  filter(n > 1)
+
+flights %>%
+  count(year, month, day, tailnum) %>%
+  filter(n > 1)
+
 ## Mutating Joins ####
 
+flights2 <- flights %>%
+  select(year:day, hour, origin, dest, tailnum, carrier)
+
+flights2
+
+flights2 %>%
+  select(-origin, -dest) %>%
+  left_join(airlines, by = "carrier")
+
+flights2 %>%
+  select(-origin, -dest) %>%
+  mutate(name = airlines$name[match(carrier, airlines$carrier)])
+
+x <- tribble(
+  ~key, ~val_x,
+  1, "x1",
+  2, "x2",
+  3, "x3"
+)
+
+# Select is for getting columns, filter is for getting rows.
+
+y <- tribble(
+  ~key, ~val_y,
+  1, "y1",
+  2, "y2",
+  4, "y3"
+)
+
+x %>%
+  inner_join(y, by = "key")
+
+x <- tribble(
+  ~key, ~val_x,
+  1, "x1",
+  2, "x2",
+  2, "x3",
+  1, "x4"
+)
+
+y <- tribble(
+  ~key, ~val_y,
+  1, "y1",
+  2, "y2"
+)
+
+left_join(x, y, by = "key")
+
+x <- tribble(
+  ~key, ~val_x,
+  1, "x1",
+  2, "x2",
+  2, "x3",
+  3, "x4"
+)
+
+y <- tribble(
+  ~key, ~val_y,
+  1, "y1",
+  2, "y2",
+  2, "y3",
+  3, "y4"
+)
+
+left_join(x, y, by = "key")
+
+flights2 %>%
+  left_join(weather)
+
+flights2 %>%
+  left_join(planes, by = "tailnum")
+
+flights2 %>%
+  left_join(airports, c("dest" = "faa"))
+
+flights2 %>%
+  left_join(airports, c("origin" + "faa"))
+
 ## Pipes for Readable Workflows ####
+
+# install.packages("magrittr")
+library(magrittr)
+
+foo_foo <- little_bunny()
+
+foo_foo_1 <- hop(foo_foo, through = forest)
+foo_foo_2 <- scoop(foo_foo_1, up = field_mice)
+foo_foo_3 <- bop(foo_foo_2, on = head)
+
+foo_foo <- hop(foo_foo, through = forest)
+foo_foo <- scoop(foo_foo, up = field_mice)
+foo_foo <- bop(foo_foo, on = head)
+
+bop(
+  scoop(
+    hop(foo_foo, through = forest),
+    up = field_mice
+  ), 
+  on = head
+)
+
+foo_foo %>%
+  hop(through = forest) %>%
+  scoop(up = field_mice) %>%
+  bop(on = head)
 
 ## Workshop 4 - Spatial Data in R ####
