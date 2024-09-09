@@ -756,7 +756,7 @@ flights2 %>%
   left_join(airports, c("dest" = "faa"))
 
 flights2 %>%
-  left_join(airports, c("origin" + "faa"))
+  left_join(airports, c("origin" = "faa"))
 
 ## Pipes for Readable Workflows ####
 
