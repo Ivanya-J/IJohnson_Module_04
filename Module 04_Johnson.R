@@ -500,27 +500,117 @@ table3 %>%
 table3 %>%
   separate(rate, into = c("cases", "population"), convert = TRUE)
 
+table3 %>%
+  separate(year, into = c("century", "year"), sep = 2)
+
+# Using unite
+
+table5
+
+table5 %>%
+  unite(new, century, year, sep = "")
+
 ## Handling Missing Values ####
+
+# An NA (explicit absence) indicates the presence of absent data, and a blank cell just indicates the absence of data (implicit absence).
 
 ## Explicit missing values ####
 
+treatment <- tribble(
+  ~person, ~treatment, ~response,
+  "Derrick Whitmore", 1, 7,
+  NA, 2, 10,
+  NA, 3, NA,
+  "Katherine Burke", 1, 4
+)
+
+treatment |>
+  fill(everything())
+# Using this function, you fill the missing values. This treatment is sometimes called "last observation carried forward" (locf).
+
 ## Fixed Values ####
+
+x <- c(1, 4, 5, 7, NA)
+coalesce(x, 0)
+# Use coalesce() when missing values represent some fixed and known value, most commonly 0 to replace the NA.
+
+x <- c(1, 4, 5, 7, -99)
+na_if(x, -99)
+# This is for the opposite problem above. Some other concrete value actually represents a missing value. This happens when data is generated from an older software that can't properly represent missing values so it uses something like 99 or -999 in place of the missing value.
 
 ## NaN ####
 
-# NaN = Not a Number
+# NaN = Not a Number and behaves the same as NA, but in some cases you may need to distinguish it using is.nan(x)
+
+x <- c(NA, NaN)
+x * 10
+x == 1
+is.na(x)
+
+#NaN is most common when performing a mathematical operation that has an indeterminate result.
 
 ## Implicit Missing Values ####
 
+stocks <- tibble(
+  year  = c(2020, 2020, 2020, 2020, 2021, 2021, 2021),
+  qtr   = c(1, 2, 3, 4, 2, 3, 4),
+  price = c(1.88, 0.59, 0.35, NA, 0.92, 0.17, 2.66)
+)
+
+# Two missing observations: Price in the 4th quarter of 2020 is explicitly missing, because its value is NA. Price for the 1st quarter of 2021 is implicitly missing, because it does not appear in the data set.
+
+stocks |>
+  pivot_wider(
+    names_from = qtr,
+    values_from = price
+  )
+# Advanced Note: See link in doc on how to use tidyr::complete() to generate missing values in special cases
+
 ## Import Data into R ####
+
+# Exploring how to read plain-text rectangular files into R. These include .csv files. Focusing only on the simplest forms of data files in this section, many of the data import principles are applicable to other data types.
 
 ## CSV Files ####
 
+# .csv = Comma-separated values (data values are separated by commas)
+
+# Things to note:
+# The first row or "header row" gives the column names
+# The following six rows provide the data
+# REFER TO EXAMPLE ON PAGE 74 OF MODULE 04 WORKBOOK
+
+?read_csv
+
 ## Practical Advice ####
+
+# Once you read data in, the first step should include assessing whether it is tidy. That means understanding the nature of your variables, and asking the questions:
+
+# Are observations in rows?
+# Are variables in columns?
+# Are there any odd variables? Things that seems strange, like spelling errors or some other issue that R will have with it?
+
+# By default, read_csv() only recognizes empty strings ("") in the students data set as NAs, we want it to also recognize the character string "N/A"
+
+# In the student data set, tne Student ID and Full Name columns are surrounded by backticks. That’s because they contain spaces, breaking R’s usual rules for variable names; they’re non-syntactic names (think back to our intro to programming workshop!). To refer to these variables, you need to surround them with backticks, `:
 
 ## Exercise 5 ####
 
+# 1. Identify what is wrong with each of the following inline CSV files. What happens when you run the code?
+
+read_csv("a,b\n1,2,3\n4,5,6")
+read_csv("a,b,c\n1,2\n1,2,3,4")
+read_csv("a,b\n\"1")
+read_csv("a,b\n1,2\na,b")
+read_csv("a;b\n1;3")
+
 ## Relational Data ####
+
+# Relational data is a collection of multiple data tables in a given data set or in a project that are related in some ways. They're called relational data because the relations *between* these tables matter, not just the individual tables, and will be a key source of the insights you can deliver.
+
+# Relations are always defined between a pair of tables. All other relations are built up from this idea: the relations of three or more tables are always a property of the relations between each pair.
+
+# Sometimes both elements of a pair can be the same table! This is needed if, for example, you have a table of people, and each person has a reference to their parents.
+
 
 ## Joining Data Sets ####
 
