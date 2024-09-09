@@ -575,11 +575,26 @@ stocks |>
 # .csv = Comma-separated values (data values are separated by commas)
 
 # Things to note:
+
 # The first row or "header row" gives the column names
+
 # The following six rows provide the data
-# REFER TO EXAMPLE ON PAGE 74 OF MODULE 04 WORKBOOK
 
 ?read_csv
+
+students <- read_csv("https://pos.it/r4ds-students-csv")
+
+students
+
+students <- read_csv("https://pos.it/r4ds-students-csv", na = c("N/A", ""))
+
+students
+
+students |>
+  rename(
+    student_id = `Student ID`,
+    full_name = `Full Name`
+  )
 
 ## Practical Advice ####
 
@@ -611,8 +626,41 @@ read_csv("a;b\n1;3")
 
 # Sometimes both elements of a pair can be the same table! This is needed if, for example, you have a table of people, and each person has a reference to their parents.
 
+# To work with relational data you need verbs that work with pairs of tables. In the same way that ggplot2 is a package for implementing the grammar of graphics, dplyr is a package focused on the grammar of data manipulation. It’s a package specialised for doing data analysis. 
+
+# dplyr provides the following verbs to make common data analysis operations easier. The three families of verbs designed to work with relational data are:
+
+# 1. Mutating joins - add new variables to one dataframe from matching observations in another
+
+# 2. Filtering joins - filter observations from one data frame based on whether or not they match an observation in the other table
+
+# 3. Set operations - treat observations as if they are set elements
+
+# install.packages("nycflights13")
+library(nycflights13)
+
+airlines # Full carrier name from its abbreviated code
+
+airports # Information about each airport
+
+planes # Information about each olane, id'd by its tailnum
+
+weather # Gives weather at each NYC airport for each hour
+
+# flights connects to planes via a single variable, tailnum.
+
+# flights connects to airlines through the carrier variable.
+
+# flights connects to airports in two ways: via origin and dest variables.
+
+# flights connects to weather via origin (the location), and year, month, day and hour (the time).
 
 ## Joining Data Sets ####
+
+# Identify the keys to join the data sets
+
+# Primary key uniquely ids an observation in its own table.
+# Foreign key uniquely ids an observation in another table
 
 ## Mutating Joins ####
 
