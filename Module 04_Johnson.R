@@ -354,9 +354,13 @@ ggplot(table1, aes(year, cases)) +
 
 ##  Exercise 3 ####
 
-# 1.
+# 1. For each of the sample tables, describe what each observation and each column represents.
 
-# 2. 
+# 2. Sketch out the processes you'd use to calculate the 'rate' for table2 and table3. You will need to perform four operations.
+    # a.Extract the number of TB cases per country per year
+    # b. Extract the matching population per country per year
+    # c. Divide cases by population, and multiply by 1,000
+    # d. Store back in the appropriate place
 
 ## Pivoting Data ####
 
@@ -407,11 +411,94 @@ df |>
 
 cms_patient_experience
 
+cms_patient_experience |>
+  distinct(measure_cd, measure_title)
+# Instead of choosing new column names, we need to provide the existing columns that define the values and the column name.
+
+cms_patient_experience |>
+  pivot_wider(
+    names_from = measure_cd,
+    values_from = prf_rate
+  ) # Tibble doesn't look right because we need to also tell the pivot_wider() which column or columns have values that uniquely identify each row.
+
+cms_patient_experience |>
+  pivot_wider(
+    id_cols = starts_with("org"),
+    names_from = measure_cd,
+    values_from = prf_rate
+  )
+
 ## Pivoting Wider ####
+
+df <- tribble(
+  ~id, ~measurement, ~value,
+  "A", "bp1", 100,
+  "B", "bp1", 140,
+  "B", "bp2", 115,
+  "A", "bp2", 120,
+  "A", "bp3", 105
+)
+
+df |>
+  pivot_wider(
+    names_from = measurement,
+    values_from = value
+  )
+
+df |>
+  distinct(measurement) |>
+  pull() # pulls the values associated with measurement that aren't going into the new names or values.
+
+df |>
+  select(-measurement, -value) |>
+  distinct() # Selects the columns to remove and just gives us the 'id' column
+
+df |>
+  select(-measurement, -value) |>
+  distinct() |>
+  mutate(x = NA, y = NA, z = NA) # This fills all of the missing values using the data in the input. 
 
 ## Exercise 4 ####
 
+# 1. Why are pivot_longer() and pivot_wider() not perfectly symmetrical? Carefully consider the following example.
+stocks <- tibble(
+  year   = c(2015, 2015, 2016, 2016),
+  half  = c(   1,    2,     1,    2),
+  return = c(1.88, 0.59, 0.92, 0.17)
+)
+
+stocks %>% 
+  pivot_wider(names_from = year, values_from = return) %>% 
+  pivot_longer(`2015`:`2016`, names_to = "year", values_to = "return")
+
+# 2. Why does this code fail?
+table4a %>% 
+  pivot_longer(c(1999, 2000), names_to = "year", values_to = "cases")
+
+# 3. Consider the sample tibble below. Do you need to make it wider or longer? What are the variables?
+preg <- tribble(
+  ~pregnant, ~male, ~female,
+  "yes",     NA,    10,
+  "no",      20,    12
+)
+
 ## Separating/Uniting Data Tables ####
+
+# In this section, the example table (table 3) has a column (rate) that contains two variables (cases and population). To address this issue, we can use the separate() function, which separates one column into multiple columns.
+
+table3
+
+table3 %>%
+  separate(rate, into = c("cases", "population"))
+# By default, separate() will split values wherever it sees a non-alphanumeric character (i.e. a character that isn't a number or letter). If you wish to use a specific character to separate a column, you can pass the character to the sep argument of separate().
+
+table3 %>%
+  separate(rate, into = c("cases", "population"), sep = "/")
+
+# As a default, separate() labeled 'cases' and 'population' as character types. But the values are numeric. We  want to ask separate() to convert them to better types using convert = TRUE.
+
+table3 %>%
+  separate(rate, into = c("cases", "population"), convert = TRUE)
 
 ## Handling Missing Values ####
 
