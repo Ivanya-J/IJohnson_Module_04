@@ -760,30 +760,230 @@ flights2 %>%
 
 ## Pipes for Readable Workflows ####
 
+# This is just used as an example. None of the code will actually run. The goal is to show how we can write a kids story in R using the piping function, rather than other methods
+
 # install.packages("magrittr")
 library(magrittr)
 
-foo_foo <- little_bunny()
+# Little Bunny Foo Foo
+# Went Hopping Through The Forest
+# Scooping Up The Field Mice
+# And Bopping Them On The Head
 
-foo_foo_1 <- hop(foo_foo, through = forest)
-foo_foo_2 <- scoop(foo_foo_1, up = field_mice)
-foo_foo_3 <- bop(foo_foo_2, on = head)
+# Create the story and set it
+ # foo_foo <- little_bunny()
 
-foo_foo <- hop(foo_foo, through = forest)
-foo_foo <- scoop(foo_foo, up = field_mice)
-foo_foo <- bop(foo_foo, on = head)
+# Saving each step as a new object 
+ # foo_foo_1 <- hop(foo_foo, through = forest)
+ # foo_foo_2 <- scoop(foo_foo_1, up = field_mice)
+ # foo_foo_3 <- bop(foo_foo_2, on = head)
 
-bop(
-  scoop(
-    hop(foo_foo, through = forest),
-    up = field_mice
-  ), 
-  on = head
-)
+# Overwrite the original object instead of creating intermediate objects at each step
+ # foo_foo <- hop(foo_foo, through = forest)
+ # foo_foo <- scoop(foo_foo, up = field_mice)
+ # foo_foo <- bop(foo_foo, on = head)
 
-foo_foo %>%
-  hop(through = forest) %>%
-  scoop(up = field_mice) %>%
-  bop(on = head)
+# String the functions and calls together
+ # bop(
+  # scoop(
+    # hop(foo_foo, through = forest),
+    # up = field_mice
+#  ), 
+ # on = head
+# )
+
+# USE A PIPE
+# foo_foo %>%
+  # hop(through = forest) %>%
+  # scoop(up = field_mice) %>%
+  # bop(on = head)
 
 ## Workshop 4 - Spatial Data in R ####
+
+# Installing/Loading the spatial R packages
+
+# install.packages("sf")
+# install.packages("terra")
+# install.packages("tmap")
+
+library(tidyverse)
+library(sf) # simple features
+library(terra) # raster
+library(tmap) # Thematic maps are geographical maps in which spatial data distributions are visualized
+library(readr)
+
+dat <- read_csv("data-for-course/copepods_raw.csv")
+dat
+
+## Data Exploration ####
+
+# Check coordinates
+
+library(ggplot2)
+
+ggplot(dat) +
+  aes(x = longitude, y = latitude, color = richness_raw) +
+  geom_point()
+
+ggplot(dat, aes(x = latitude, y = richness_raw)) +
+  stat_smooth() +
+  geom_point()
+
+# Get Going With Maps
+
+sdat <- st_as_sf(dat, coords = c("longitude", "latitude"),
+                 crs = 4326)
+?st_as_sf
+# st_as_sf converts different data types to simple features
+# coords gives the names of the columns that relate to the spatial coordinates (in order of X coordinate followed by Y coordinate)
+# crs stands for 'coordinate reference system'
+
+# Coordinate Reference Systems
+
+# CRS are required for 2D mapping to compensate for the lumpy, spherical (3D) nature of the earth
+
+crs4326 <- st_crs(4326)
+crs4326 # Look at the whole crs
+crs4326$Name
+crs4326$wkt
+
+# Feature Collection (points)
+
+sdat
+
+# Cartography
+
+plot(sdat["richness_raw"])
+plot(sdat)
+
+# Thematic Maps for Communication
+
+# Using tmap
+
+tm_shape(sdat) +
+  tm_dots(col = "richness_raw")
+
+# tm_dots to plot dots of the coordinates. Other options are tm_polygons and tm_symbols
+# Use tmap_save to save the map to your working directory
+
+tmap_save(tm1, filename = "Richness-map.png",
+          width = 600, height = 600)
+# Above code doesn't work right now. Talia already asked Ben about it and he's going to check it
+
+## Mapping Spatial polygons as Layers ####
+
+# Loading shapefiles
+# Shapefiles are not ideal as they're inefficient at storing data and to save 1 shapefile you create multiple files. This means, a bit of the file might be lost if you transfer the data somewhere else.
+
+aus <- st_read("data-for-course/spatial-data/Aussie/Aussie.shp")
+shelf <- st_read("data-for-course/spatial-data/aus_shelf/aus_shelf.shp")
+
+aus
+shelf
+
+# Mapping Polygons
+
+tm_shape(shelf) +
+  tm_polygons()
+
+tm_shape(shelf, bbox = sdat) +
+  tm_polygons() +
+  tm_shape(aus) +
+  tm_polygons() +
+  tm_shape(sdat) +
+  tm_dots()
+
+# Exploring tmap ####
+
+vignette('tmap-getstarted')
+
+# Follow the instructions in the Help Window
+
+data("World")
+
+tm_shape(World) +
+  tm_polygons("HPI")
+
+# Interactive Maps
+
+tmap_mode("view")
+
+tm_shape(World) +
+  tm_polygons("HPI")
+
+# Multiple shapes and layers
+
+data(World, metro, rivers, land)
+
+tmap_mode("plot")
+
+tm_shape(land) + 
+  tm_raster("elevation", palette = terrain.colors(10)) +
+  tm_shape(World) +
+  tm_borders("white", lwd = .5) +
+  tm_text("iso_a3", size = "AREA") +
+  tm_shape(metro) +
+  tm_symbols(col = "red", size = "pop2020", scale = .5) +
+  tm_legend(show = FALSE)
+
+# Facets
+
+tmap_mode("view")
+
+tm_shape(World) +
+  tm_polygons(c("HPI", "economy")) +
+  tm_facets(sync = TRUE, ncol = 2)
+
+tmap_mode("plot")
+
+data(NLD_muni)
+
+NLD_muni$perc_men <- NLD_muni$pop_men / NLD_muni$population * 100
+
+tm_shape(NLD_muni) +
+  tm_polygons("perc_men", palette = "RdYlBu") +
+  tm_facets(by = "province")
+
+tmap_mode("plot")
+
+data(NLD_muni)
+
+tm1 <- tm_shape(NLD_muni) + tm_polygons("population", convert2density = TRUE)
+
+tm2 <- tm_shape(NLD_muni) + tm_bubbles(size = "population")
+
+tmap_arrange(tm1, tm2)
+
+# Basemaps and Overlay Tile Maps
+
+tmap_mode("view")
+
+tm_basemap("Stamen.Watercolor") +
+  tm_shape(metro) + tm_bubbles(size = "pop2020", col = "red") +
+  tm_tiles("Stamen.TonerLabels")
+
+# Options and Styles
+
+tmap_mode("plot")
+
+tm_shape(World) +
+  tm_polygons("HPI") +
+  tm_layout(bg.color = "skyblue", inner.margins = c(0, .02, .02, .02))
+
+tmap_options(bg.color = "black", legend.text.color = "white")
+
+tm_shape(World) +
+  tm_polygons("HPI", legend.title = "Happy Planet Index")
+
+tmap_style("classic")
+
+tm_shape(World) +
+  tm_polygons("HPI", legend.title = "Happy Planet Index")
+
+tmap_options_diff()
+
+tmap_options_reset()
+
+## tmap tutorial in 'Making Maps with R' section of Book ####
+
+## Exporting Maps ####
