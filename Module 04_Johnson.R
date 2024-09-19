@@ -101,7 +101,7 @@ ggplot(data = mpg, mapping = aes(x = displ, y = hwy)) + geom_point() + geom_smoo
 
 ggplot() + geom_point(data = mpg, mapping = aes(x = displ, y = hwy)) + geom_smooth(data = mpg, mapping = aes(x = displ, y = hwy))
 
-# 2. The top code will give us the same plot from earlier. One chart using both point data and a smooth line (kinda like a line of best fit). The bottom code will give us two different plots in panels because of the + before the geom_point function
+# 2. The top code will give us the same plot from earlier (right above Exercise 2). One chart using both point data and a smooth line (kinda like a line of best fit). The bottom code will give us two different plots in panels because of the + before the geom_point function
 
 # 3.In reality, the above code give the same result because, as we saw earlier, you can duplicate the data or make it global. In the bottom code, we have simply duplicated the data in the top code.
 
@@ -356,17 +356,23 @@ ggplot(table1, aes(year, cases)) +
 
 # 1. For each of the sample tables, describe what each observation and each column represents.
 
+# Each of the three sample tables show the same data: cases of TB per country per year. In table 1, the columns are country, year, cases, and population. Table 2 columns are country, year, type, and count. Table 3 columns are country, year, and rate. Table 1 is tidy because it ha split the total population from the cases count. Table 2 has a column labeled type because the corresponding count is either for a population or cases. Lastly, table 3's column labeled rate shows the number of cases/population for each country in a given year.
+
 # 2. Sketch out the processes you'd use to calculate the 'rate' for table2 and table3. You will need to perform four operations.
     # a.Extract the number of TB cases per country per year
+# For table 2 I would use pivot_wider to split the column type into two separate columns (cases and population).For table 3, use the separate function to separate the rate column into cases and population.
     # b. Extract the matching population per country per year
+# Once we have separate columns, I would then need to pivot longer by year to match the cases and population with each country by year.
     # c. Divide cases by population, and multiply by 1,000
+# Using the mutate function, set the new column title to rate and the equation would be cases / population * 1000 to get the rate of TB per country per year.
     # d. Store back in the appropriate place
+# Call the table and check the data to make sure it has performed the calculation and given the correct values for the new column. We need to use the unite function to tell R to read the values as numeric, not characters. 
 
 ## Pivoting Data ####
 
 ## Lengthening Data sets ####
 
-# Pivoting data set longer is the most common tidying issue. pivot_longer() makes data sets "longer" by increasing the # of rows and decreasing the number of columns. pivot_longer() splits the data set by column, and reformats it into the tidy format of observations as rows, columns as variables, and values as cell entries.
+# Pivoting data set longer is the most common tidying issue. pivot_longer() makes data sets "longer" by increasing the # of rows and decreasing the number of columns. pivot_longer() splits the data set by column, and re-formats it into the tidy format of observations as rows, columns as variables, and values as cell entries.
 
 billboard
 
@@ -471,9 +477,12 @@ stocks %>%
   pivot_wider(names_from = year, values_from = return) %>% 
   pivot_longer(`2015`:`2016`, names_to = "year", values_to = "return")
 
+# The variables for half and year are numeric while return is an integer. However, R reads the tibble as half and return are integers while year is numeric. Column type information tends to get lost when converted from wide to long. Pivot longer stacks multiple columns into a single column while pivot wider creates column names from values in the column. 
+
 # 2. Why does this code fail?
-table4a %>% 
+table4a %>%
   pivot_longer(c(1999, 2000), names_to = "year", values_to = "cases")
+# Error: Can't select columns past the end. Locations 1999 and 2000 don't exist. There are only 3 columns. To select the columns 1999 and 200, you need (``) or provide the information as a string. 
 
 # 3. Consider the sample tibble below. Do you need to make it wider or longer? What are the variables?
 preg <- tribble(
@@ -481,6 +490,8 @@ preg <- tribble(
   "yes",     NA,    10,
   "no",      20,    12
 )
+
+# Use pivot_longer to create variables sex (male, female), pregnant (yes, no), and count.
 
 ## Separating/Uniting Data Tables ####
 
@@ -612,11 +623,11 @@ students |>
 
 # 1. Identify what is wrong with each of the following inline CSV files. What happens when you run the code?
 
-read_csv("a,b\n1,2,3\n4,5,6")
-read_csv("a,b,c\n1,2\n1,2,3,4")
-read_csv("a,b\n\"1")
-read_csv("a,b\n1,2\na,b")
-read_csv("a;b\n1;3")
+read_csv("a,b\n1,2,3\n4,5,6") # Needs a 3rd column header.
+read_csv("a,b,c\n1,2\n1,2,3,4") # Missing one value on the 2nd line so it shows as NA.
+read_csv("a,b\n\"1") # 2nd value is missing and the 2nd quotation mark is missing.
+read_csv("a,b\n1,2\na,b") # There are character and numeric types; you need to specify the columns better.
+read_csv("a;b\n1;3") # R reads it as ; delimited because it's separated by semicolons. Need to use read_csv2
 
 ## Relational Data ####
 
@@ -866,7 +877,7 @@ tm_shape(sdat) +
 # tm_dots to plot dots of the coordinates. Other options are tm_polygons and tm_symbols
 # Use tmap_save to save the map to your working directory
 
-tmap_save(tm1, filename = "Richness-map.png",
+tmap_save(filename = "Richness-map.png",
           width = 600, height = 600)
 # Above code doesn't work right now. Talia already asked Ben about it and he's going to check it
 
@@ -984,6 +995,103 @@ tmap_options_diff()
 
 tmap_options_reset()
 
-## tmap tutorial in 'Making Maps with R' section of Book ####
-
 ## Exporting Maps ####
+
+?tmap_save
+
+## Appendix A: Tibbles ####
+
+iris
+str(iris) # data.frame: 150 obs. of 5 variables
+
+as_tibble(iris) # Tibble shows the first ten rows with what type is assigned to the column and the column name
+
+tibble(
+  x = 1:5,
+  y = 1,
+  z = x ^ 2 + y) # call new variables to produce new column values!
+
+# To build the same as above with data.frame, it requires a few extra steps.
+
+x <- c(1:5)
+y <- c(1)
+z <- x ^ 2 + y
+
+data.frame(x = 1:5, y = 1, z = x ^ 2 + y) # This works!
+
+data.frame(c(
+  x = 1:5,
+  y = 1,
+  z = x ^ 2 + y
+)) # This does not work
+
+tb <- tibble(
+  `:)` = "smile",
+  ` ` = "space",
+  `2000` = "number"
+)
+
+as_tibble(iris)
+
+tibble(
+  a = lubridate::now() + runif(1e3) * 86400,
+  b = lubridate::today() + runif(1e3) * 30,
+  c = 1:1e3,
+  d = runif(1e3),
+  e = sample(letters, 1e3, replace = TRUE)
+)
+
+library(nycflights13)
+nycflights13::flights %>%
+  print(n = 10, width = Inf)
+
+# You can set some things globally
+options(tibble.width = Inf)
+
+df <- tibble(
+  x = runif(5),
+  y = rnorm(5)
+)
+
+# Extract by name
+df$x
+df[["x"]]
+
+# Do the same with pipes
+df %>% .$x # . is a placeholder when using pipes to use these functions.
+df %>% .[["x"]]
+
+# Extract by row position
+df[[1]]
+
+# Extract by exact position
+df[[2,2]]
+
+# You can use the above to pull out a single value to plot on a graph, add a label to a plot, or print a key for your dataset.
+
+# Tibbles won't do partial matching, meaning if the variable you call doesn't match exactly what's in the data frame, tibbles will generate a warning.
+
+df <- tibble(
+  xxx = runif(5),
+  y = rnorm(5)
+)
+
+df$xx
+# NULL
+
+# If you run into a problem with tibble, us as.data.frame to turn a tibble back to a R dataframe. This may be necessary because tibbles don't always work with older functions in R.
+
+df <- data.frame(abc = 1, xyz = "a")
+df
+df$x # call by name
+df[,"xyz"] # call by exact position
+
+# Tribble = Transposed tibble. Has one purpose: help you do data entry directly in your script. Column headings are defined by formulas (start with ~) and each data entry is put in a column, separated by commas.
+
+# Add a comment to the line starting with # to clearly identify your header.
+tribble(
+  ~x, ~y, ~z,
+  #--|--|----
+  "a", 2, 3.6,
+  "b", 1, 8.5
+)
