@@ -27,3 +27,365 @@ library(ggthemes)
 
 library(ggplot2)
 ```
+
+
+## Tidy Data
+There are many ways to display a given data set, but not every way is easy to use for analysis. The process of rearranging your data to a format more appropriate for analysis is the process of “tidying.”
+
+
+### Load Tables
+
+The following tables are set in the tidyverse package
+```{r}
+table1
+
+table2
+
+table3
+```
+
+
+### Compute rate per 10,000
+```{r}
+table1 %>% # This symbol is known as a pipe. We will learn more about pipes later.
+  mutate(rate = cases / population * 10000)
+```
+
+By using the mutate function, we have taken table1 and created a new column called 'Rate' that is cases / population * 10000
+
+
+### Compute cases per year
+```{r}
+table1 %>% 
+  count(year, wt = cases)
+```
+
+Because of the structure of table1, we can call specific years and look at the TOTAL number of cases in each year.
+
+
+### Visualize Changes Over Time
+```{r}
+ggplot(table1, aes(year, cases)) + 
+  geom_line(aes(group = country), color = "grey50") + 
+  geom_point(aes(color = country))
+```
+
+We can plot table1 in a nice graph to show cases per year per country. Each line represents a different country and the colored points at the end of each line verify which line corresponds to which country.
+
+## Exercise 3
+
+1. For each of the sample tables, describe what each observation and each column represents.
+```{r}
+table1
+
+table2
+
+table3
+```
+
+Each of the three sample tables show the same data: cases of TB per country per year. In table 1, the columns are country, year, cases, and population. Table 2 columns are country, year, type, and count. Table 3 columns are country, year, and rate. Table 1 is tidy because it has split the total population from the cases count. Table 2 has a column labeled type because the corresponding count is either for a population or cases. Lastly, table 3's column labeled rate shows the number of cases/population for each country in a given year, but not in the correct format.
+
+
+2. Sketch out the processes you'd use to calculate the 'rate' for table2 and table3. You will need to perform four operations.
+
+ a.Extract the number of TB cases per country per year
+ 
+    - For table 2 I would use pivot_wider to split the column type into two separate columns (cases and population).For table 3, use the separate function to separate the rate column into cases and population.
+
+ b. Extract the matching population per country per year
+ 
+    - Once we have separate columns, I would then need to pivot longer by year to match the cases and population with each country by year.
+    
+ c. Divide cases by population, and multiply by 1,000
+ 
+    - Using the mutate function, set the new column title to rate and the equation would be cases / population * 1000 to get the rate of TB per country per year.
+
+ d. Store back in the appropriate place
+ 
+    - Call the table and check the data to make sure it has performed the calculation and given the correct values for the new column. We need to use the unite function to tell R to read the values as numeric, not characters. 
+
+
+## Pivoting Data
+
+
+### Lengthening Data
+Pivoting data sets longer is the most common tidying issue. pivot_longer() makes data sets "longer" by *increasing the # of rows* and *decreasing the number of columns*. pivot_longer() splits the data set by column, and re-formats it into the tidy format of observations as rows, columns as variables, and values as cell entries.
+
+Calling a data set in the tidyr package
+```{r}
+billboard
+```
+
+Using the pivot_longer() function to take all the columns that start with 'wk' and put them into one column labeled "week".
+```{r}
+billboard |>
+  pivot_longer(
+    cols = starts_with("wk"),
+    names_to = "week",
+    values_to = "rank"
+  )
+```
+
+Further cleaning of the data by removing NA values
+```{r}
+billboard |>
+  pivot_longer(
+    cols = starts_with("wk"),
+    names_to = "week",
+    values_to = "rank",
+    values_drop_na = TRUE
+  ) # This is used to drop any NA values
+```
+
+#### Pivoting Longer
+Created a data set called 'df' with three variables and their associated values
+
+
+New tidy data set with three variables:
+  1. id (already exists)
+  2. measurement (column names)
+  3. value (cell values)
+```{r}
+df <- tribble(
+  ~id, ~bp1, ~bp2,
+  #--|-----|------
+  "A", 100, 120,
+  "B", 140, 115,
+  "C", 120, 125
+)
+```
+
+
+Tidying the new tibble to take the columns 'bpa' and 'bp2' and put them into one column called "measurement"
+```{r}
+df |> # This is another symbol for pipes
+  pivot_longer(
+    cols = bp1:bp2,
+    names_to = "measurement",
+    values_to = "value"
+  )
+```
+
+
+### Widening Data
+Widening a data set is the opposite of lengthening and we do so using the pivot_wider() function. pivot_wider() allows us to handle an observation if it's scattered across *multiple rows*.
+
+Calling a data set in the tidyr package
+```{r}
+cms_patient_experience
+```
+
+Instead of choosing new column names, we need to provide the existing columns that define the values and the column name.
+```{r}
+cms_patient_experience |>
+  distinct(measure_cd, measure_title)
+```
+
+Tibble doesn't look right because we need to also tell the pivot_wider() which column or columns have values that uniquely identify each row.
+```{r}
+cms_patient_experience |>
+  pivot_wider(
+    names_from = measure_cd,
+    values_from = prf_rate
+  )
+```
+
+Final product
+```{r}
+cms_patient_experience |>
+  pivot_wider(
+    id_cols = starts_with("org"),
+    names_from = measure_cd,
+    values_from = prf_rate
+  )
+```
+
+
+#### Pivoting Wider
+
+New tidy data set with three columns and five rows
+```{r}
+df <- tribble(
+  ~id, ~measurement, ~value,
+  #--|------------|---------
+  "A",    "bp1",      100,
+  "B",    "bp1",      140,
+  "B",    "bp2",      115,
+  "A",    "bp2",      120,
+  "A",    "bp3",      105
+)
+```
+
+
+Use the pivot_wider function to condense the id column and expand each value in the measurements column to their own column.
+```{r}
+df |>
+  pivot_wider(
+    names_from = measurement,
+    values_from = value
+  )
+```
+
+
+Pull the values associated with measurement that aren't going into the new names or values.
+```{r}
+df |>
+  distinct(measurement) |>
+  pull()
+```
+
+
+Select the columns to remove and just gives us the 'id' column
+```{r}
+df |>
+  select(-measurement, -value) |>
+  distinct()
+```
+
+
+This fills all of the missing values with "NA" using the data in the input.
+```{r}
+df |>
+  select(-measurement, -value) |>
+  distinct() |>
+  mutate(x = NA, y = NA, z = NA)
+```
+
+
+## Exercise 4
+
+ 1. Why are pivot_longer() and pivot_wider() not perfectly symmetrical? Carefully consider the following example.
+```{r}
+stocks <- tibble(
+  year   = c(2015, 2015, 2016, 2016),
+  half  = c(   1,    2,     1,    2),
+  return = c(1.88, 0.59, 0.92, 0.17)
+)
+
+stocks %>% 
+  pivot_wider(names_from = year, values_from = return) %>% 
+  pivot_longer(`2015`:`2016`, names_to = "year", values_to = "return")
+```
+
+The variables for half and year are numeric while return is an integer. However, R reads the tibble as half and return are integers while year is numeric. Column type information tends to get lost when converted from wide to long. Pivot longer stacks multiple columns into a single column while pivot wider creates column names from values in the column. 
+
+
+ 2. Why does this code fail?
+```{r}
+table4a %>%
+  pivot_longer(c(1999, 2000), names_to = "year", values_to = "cases")
+
+# Error: Can't select columns past the end. Locations 1999 and 2000 don't exist. There are only 3 columns. To select the columns 1999 and 200, you need (``) or provide the information as a string. 
+```
+
+
+ 3. Consider the sample tibble below. Do you need to make it wider or longer? What are the variables?
+```{r}
+preg <- tribble(
+  ~pregnant, ~male, ~female,
+  "yes",     NA,    10,
+  "no",      20,    12
+)
+
+# Use pivot_longer to create variables sex (male, female), pregnant (yes, no), and count.
+```
+
+
+## Separating / Uniting Data Tables
+In this section, the example table (table 3) has a column (rate) that contains two variables (cases and population). To address this issue, we can use the separate() function, which separates one column into multiple columns.
+
+Load table3, provided by tidyverse
+```{r}
+table3
+```
+
+Separate the 'rate' column
+```{r}
+table3 %>%
+  separate(rate, into = c("cases", "population"))
+```
+
+By default, separate() will split values wherever it sees a non-alphanumeric character (i.e. a character that isn't a number or letter). If you wish to use a specific character to separate a column, you can pass the character to the sep argument of separate().
+
+
+You can set where you want the separation to occur
+```{r}
+table3 %>%
+  separate(rate, into = c("cases", "population"), sep = "/")
+```
+
+As a default, separate() labeled 'cases' and 'population' as character types. But the values are numeric. We  want to ask separate() to convert them to better types using convert = TRUE.
+
+
+Convert the label to integers
+```{r}
+table3 %>%
+  separate(rate, into = c("cases", "population"), convert = TRUE)
+```
+
+
+Extra practice with the separate function by separating the column 'year' into century and year. 
+```{r}
+table3 %>%
+  separate(year, into = c("century", "year"), convert = TRUE, sep = 2)
+```
+
+
+### Using Unite
+The unite() function takes the values within two columns and pushes them together to form one new column.
+
+Load new table (table5) provided by tidyverse
+```{r}
+table5
+```
+
+Unite the split columns of century and year, back to one column labeled new.
+```{r}
+table5 %>%
+  unite(new, century, year, sep = "")
+```
+
+
+## Handling Missing Values
+
+
+### Explicit Missing Values
+
+
+### Fixed Values
+
+
+### NaN
+
+
+### Implicit Missing Values
+
+
+## Import Data into R
+
+
+## CSV Files
+
+
+## Exercise 5
+
+
+## Relational Data
+
+
+## Installing and Loading New Data
+
+
+### Joining Data Sets
+
+
+### Mutating Joins
+
+
+## Pipes for Readable Workflows
+
+
+### Install and Load New Package
+```{r}
+
+```
