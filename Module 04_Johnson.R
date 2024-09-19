@@ -364,7 +364,7 @@ ggsave("Mod4-Workshop2-plot.pdf")
 
 # Use width width and height arguments to play with dimensions of your plot
 
-## Workshop 3 - Data Wrangling ####
+## Workshop 3: Data Wrangling ####
 
 ## Tidy Data ####
 
@@ -855,7 +855,7 @@ library(magrittr)
   # scoop(up = field_mice) %>%
   # bop(on = head)
 
-## Workshop 4 - Spatial Data in R ####
+## Workshop 4: Spatial Data in R ####
 
 # Installing/Loading the spatial R packages
 

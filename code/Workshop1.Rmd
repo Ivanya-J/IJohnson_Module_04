@@ -12,7 +12,7 @@ knitr::opts_chunk$set(echo = TRUE)
 # WORKSHOP 1: Reproducible Research & Version Control
 
 
-## Install and load tidyverse package
+## Install and load Github package
 
 These first lines of code include the package needed to use Git in RStudio and how we set our credentials.
 ```{r}
@@ -71,6 +71,7 @@ ggplot(data = mpg) +
 # displ is the engine size and hwy is the fuel efficiency
 # geom_point adds a layer of points to the plot
 ```
+
 The plot shows a negative relationship between engine size (displ) and fuel efficiency (hwy). In other words, cars with big engines use more fuel.
 
 
@@ -81,6 +82,7 @@ The plot shows a negative relationship between engine size (displ) and fuel effi
 ggplot(data = mpg) +
   geom_line(mapping = aes(x = displ, y = hwy))
 ```
+
 This line graph doesn't look very neat. It's scattered and all over the place. There are a few ways to clean it up!
 
 
@@ -101,6 +103,7 @@ ggplot(data = mpg) +
 ggplot(data = mpg) + 
   geom_point(mapping = aes(x = displ, y = hwy, size = class))
 ```
+
 Note the warning!!!"Using size for a discrete variable is not advised".
 
 
@@ -109,6 +112,7 @@ Note the warning!!!"Using size for a discrete variable is not advised".
 ggplot(data = mpg) + 
   geom_point(mapping = aes(x = displ, y = hwy, alpha = class))
 ```
+
 Another warning!! "Using alpha for a discrete variable is not advised".
 
 
@@ -117,6 +121,7 @@ Another warning!! "Using alpha for a discrete variable is not advised".
 ggplot(data = mpg) + 
   geom_point(mapping = aes(x = displ, y = hwy, shape = class))
 ```
+
 You must specify shapes manually because the shape function can only handle a max of 6 values
 
 
@@ -131,6 +136,7 @@ ggplot(data = mpg) +
 ```{r}
 ggplot(data = mpg) + geom_point(mapping = aes(x = displ, y = hwy, color = displ < 5))
 ```
+
 Makes it a logical function (True or False) and changes color to reflect that
 
 
@@ -156,6 +162,7 @@ ggplot(data = mpg) +
   geom_point(mapping = aes(x = displ, y = hwy)) + 
   facet_grid(drv ~ cyl)
 ```
+
 Note that there are no occurrences of 5 cylinder 4WDs OR RWD vehicles!
 
 
@@ -180,6 +187,7 @@ Read ?facet_wrap. What does nrow do? What does ncol do? What other options contr
 ```{r}
 ?facet_wrap # Pulls up the Help tab explaining the arguments of this function and what it is used for.
 ```
+
 nrows is the number of rows, ncol is the number of columns, shrink is used with scales. If it's true that the scale needs to be fixed, it will shrink the output of statistics. Axes determines which axes will be drawn in the case of fixed scales. Margins is the default for axes.
 
 
@@ -196,6 +204,7 @@ ggplot(data = mpg) +
   #geom_point(mapping = aes(x = displ, y = hwy)) + # points horrible 
   geom_smooth(mapping = aes(x = displ, y = hwy)) # try smooth line
 ```
+
 
 So let’s recap. A geom is an object that your plot uses to represent the data. To change the geom type in your plot, simply change the geom function that you add to your plot template. Sometimes you may want to try a few things out, in which case you could use comments to help you remember what worked and what didn’t. 
 
@@ -229,6 +238,7 @@ ggplot(data = mpg) +
   geom_point(mapping = aes(x = displ, y = hwy)) +
   geom_smooth(mapping = aes(x = displ, y = hwy))
 ```
+
 With the above code, the top and second rows are duplicates so if you wanted to change the x variable you'd have to do it in multiple locations
 
 
@@ -242,6 +252,7 @@ ggplot(data = mpg, mapping = aes(x = displ, y = hwy)) +
   geom_point(mapping = aes(color = class)) + 
   geom_smooth()
 ```
+
 By doing this, you can change certain features of one set without impacting the other.Now we have different colors to indicate the raw data (geom_point) and one color for the overall relationship (geom_smooth). Neat!
 
 
@@ -284,6 +295,7 @@ ggplot() +
   geom_point(data = mpg, mapping = aes(x = displ, y = hwy)) + 
   geom_smooth(data = mpg, mapping = aes(x = displ, y = hwy))
 ```
+
 The above code give the same result because, as we saw earlier, you can duplicate the data or make it global. In the bottom code, we have simply duplicated the data in the top code.
 
 ## Transformations and stats
@@ -335,6 +347,7 @@ ggplot(data = demo) +
 ggplot(data = diamonds) + 
   geom_bar(mapping = aes(x = cut, y = stat(prop), group = 1))
 ```
+
 If you get the following:
 Warning: `stat(prop)` was deprecated in ggplot2 3.4.0.
 You can use # geom_bar(mapping = aes(x = cut, y = stage(after_stat = prop), group = 1))

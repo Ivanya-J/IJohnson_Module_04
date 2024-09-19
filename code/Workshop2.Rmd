@@ -1,0 +1,17 @@
+---
+title: "MB5370 Module 04. Data Science in R 2"
+author: "Ivanya Johnson"
+date: "2024-08-27"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+
+```{r cars}
+summary(cars)
+```
+
