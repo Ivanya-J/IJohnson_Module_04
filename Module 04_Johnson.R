@@ -55,12 +55,12 @@ ggplot(data = mpg) + geom_point(mapping = aes(x = displ, y = hwy, color = displ 
 
 # Use facet_wrap to create a subset of your data; only use for discrete variables
 ggplot(data = mpg) + geom_point(mapping = aes(x = displ, y = hwy)) + facet_wrap(~ class, nrow = 2)
-# Use facet_grid to do this with more than one variable
 
+# Use facet_grid to do this with more than one variable
 ggplot(data = mpg) + geom_point(mapping = aes(x = displ, y = hwy)) + facet_grid(drv ~ cyl)
 
-ggplot(data = mpg) + geom_point(mapping = aes(x = displ, y = hwy)) + facet_grid(. ~ cyl)
 # Use a . if you don't want to facet in the rows or column dimension
+ggplot(data = mpg) + geom_point(mapping = aes(x = displ, y = hwy)) + facet_grid(. ~ cyl)
 
 ## Exercise 1 ####
 
