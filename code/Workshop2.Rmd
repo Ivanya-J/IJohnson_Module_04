@@ -29,88 +29,305 @@ library(ggplot2)
 ```
 
 
+## Load the data (mpg is built into ggplot2)
+
+For this workshop, we will focus on the mpg and diamonds data.
+```{r}
+data("mpg")
+
+data("diamonds")
+```
+
+
+
 ## Labels
+You can add labels to your graphs when plotting with ggplot. These include titles, subtitles, captions, and x and y labels.
 
+### Adding a Title
 ```{r}
-data(mpg)
-
-library(palmerpenguins) #Palmer Penguins Data
+ggplot(mpg, aes(displ, hwy)) +
+  geom_point(aes(color = class)) +
+  geom_smooth(se = FALSE) +
+  labs(title = "Fuel efficiency generally decreases with engine size")
 ```
 
 
-### Annotations
-
+### Adding a subtitle and caption
 ```{r}
-head(mpg)
-glimpse(mpg)
-summary(mpg)
+ggplot(mpg, aes(displ, hwy)) +
+  geom_point(aes(color = class)) +
+  geom_smooth(se = FALSE) +
+  labs(
+    title = "Fuel efficiency generally decreases with engine size",
+    subtitle = "Two seaters (sports cars) are an exception because of their light weight",
+    caption = "Data from fueleconomy.gov"
+  )
 ```
 
 
-### Scales
-
+### Adding x and y labels
 ```{r}
-ggplot(data = mpg) + 
-  geom_point(mapping = aes(x = displ, y = hwy))
-
-# displ is the engine size and hwy is the fuel efficiency
-# geom_point adds a layer of points to the plot
+ggplot(mpg, aes(displ, hwy)) +
+  geom_point(aes(color = class)) +
+  geom_smooth(se = FALSE) +
+  labs(
+    x = "Engine displacement (L)",
+    y = "Highway fuel economy (mpg)",
+    colour = "Car type"
+  )
 ```
 
 
-### Axis Ticks
+## Annotations
+Annotations are used to add text to the actual plot. Sometimes you’ll want to do this to highlight a single observation. You can use geom_text() to add textual labels to your plots. This works in the same way as geom_point() but rather than a shape geometry it can add a label.
 
 ```{r}
-ggplot(data = mpg) +
-  geom_line(mapping = aes(x = displ, y = hwy))
+best_in_class <- mpg %>%
+  group_by(class) %>%
+  filter(row_number(desc(hwy)) == 1)
+
+ggplot(mpg, aes(displ, hwy)) +
+  geom_point(aes(color = class)) +
+  geom_text(aes(label = model), data = best_in_class)
 ```
 
 
-### Legends and Color Schemes
+## Scales
+Changing the default scales on ggplot2 can help you customize your plots and improve communication of your results. 
 
+### ggplot default scale
 ```{r}
-ggplot(data = mpg) + 
-  geom_point(mapping = aes(x = displ, y = hwy, color = class))
+ggplot(mpg, aes(displ, hwy)) +
+  geom_point(aes(color = class))
 ```
 
 
-### Replacing a Scale
+However, if you want to tweak them, you can do so by offering values to the scale parameters by adding numbers in the appropriate scale arguments.
 
 ```{r}
-ggplot(data = mpg) + 
-  geom_point(mapping = aes(x = displ, y = hwy), color = "purple")
+ggplot(mpg, aes(displ, hwy)) +
+  geom_point(aes(color = class)) +
+  scale_x_continuous() +
+  scale_y_continuous() +
+  scale_colour_discrete()
+
+# No values have been input, but this is the code you would use.
 ```
 
 
-### Popular Color Package
+## Axis Ticks
+You can also change the ticks on your axes. Breaks controls the position of the ticks and you can use labels as an argument to change the text label associated with ticks. 
 
 ```{r}
-ggplot(data = mpg) + geom_point(mapping = aes(x = displ, y = hwy, color = displ < 5))
+ggplot(mpg, aes(displ, hwy)) +
+  geom_point() +
+  scale_y_continuous(breaks = seq(15, 40, by = 5))
+
+# Sets the y-axis range (min: 15, max: 40) and goes in increments of 5
 ```
 
 
-
-### Themes
-
+Similarly, you can use labels set to NULL to suppress the labels altogether. This is sometimes an option if you’re trying to format your plots in a particular way.
 ```{r}
-ggplot(data = mpg) + 
-  geom_point(mapping = aes(x = displ, y = hwy)) + 
-  facet_wrap(~ class, nrow = 2)
+ggplot(mpg, aes(displ, hwy)) +
+  geom_point() +
+  scale_x_continuous(labels = NULL) +
+  scale_y_continuous(labels = NULL)
 ```
 
 
-#### Theme that Ben wrote himself so his plots are the same style. We can do this to format our own as well
+## Legends and Color Schemes
+To control the overall position of the legend, you need to use a theme() setting
 
+### Default legend setting (right)
 ```{r}
-ggplot(data = mpg) + 
-  geom_point(mapping = aes(x = displ, y = hwy)) + 
-  facet_grid(drv ~ cyl)
+base <- ggplot(mpg, aes(displ, hwy)) +
+  geom_point(aes(color = class))
+
+base + theme(legend.position = "right")
+```
+
+### Legend to the bottom
+```{r}
+  base + theme(legend.position = "bottom")
+```
+
+### Legend to the top
+```{r}
+base + theme(legend.position = "top")
+```
+
+### Legend to the left
+```{r}
+base + theme(legend.position = "left")
+```
+
+### You can also use legend.position = "none" to suppress the display of the legend altogether!
+```{r}
+base + theme(legend.position = "none")
 ```
 
 
-### Saving / Exporting Plots
+## Replacing a Scale
+There are two types of scales you’re mostly likely to want to switch out: continuous position scales and color scales.
+
+It’s very useful to plot transformations of your variables. As we’ve seen in diamond prices (Workshop 1) it’s easier to see the precise relationship between carat and price if we log transform them using a ggplot2 function for scale precisely for this purpose.
 
 ```{r}
-ggplot(data = mpg) + 
-  geom_point(mapping = aes(x = displ, y = hwy), position = "jitter")
+ggplot(diamonds, aes(carat, price)) +
+  geom_bin2d() + 
+  scale_x_log10() + 
+  scale_y_log10()
+```
+
+
+The color scale is very popular when visualizing data. This is one of the most important changes you can make to a base ggplot
+
+### Set color by drv
+```{r}
+ggplot(mpg, aes(displ, hwy)) +
+  geom_point(aes(color = drv))
+```
+
+
+### Set color by drv using a pre-made palette
+```{r}
+ggplot(mpg, aes(displ, hwy)) +
+  geom_point(aes(color = drv)) +
+  scale_color_brewer(palette = "Set1")
+```
+
+
+If there are just a few colors, you can add a redundant shape mapping. This will also help ensure your plot is interpretable in black and white.
+```{r}
+ggplot(mpg, aes(displ, hwy)) +
+  geom_point(aes(color = drv, shape = drv)) +
+  scale_color_brewer(palette = "Set1")
+```
+
+
+The ColorBrewer scales are documented online at http://colorbrewer2.org/. There are a range of different color schemes you can import such as this, so read more about them in the ggplot2 cookbook: http://www.cookbook-r.com/Graphs/Colors_(ggplot2)/ 
+
+When you have predefined colors you want to use you can set them yourself, using scale_color_manual()
+
+```{r}
+presidential %>%
+  mutate(id = 33 + row_number()) %>%
+  ggplot(aes(start, id, color = party)) +
+  geom_point() +
+  geom_segment(aes(xend = end, yend = id)) +
+  scale_color_manual(values = c(Republican = "red", Democratic = "blue"))
+```
+
+
+## Popular Color Package
+
+### Install and load packages
+Because I have already installed these packages, I have hashtagged the code out.
+```{r}
+# install.packages("viridis")
+# install.packages("hexbin")
+library(viridis)
+library(hexbin)
+```
+
+### Create a tibble
+```{r}
+df <- tibble(
+  x = rnorm(10000),
+  y = rnorm(10000)
+) # Making a fake data set to plot using this function
+```
+
+
+### Plot the tibble
+```{r}
+ggplot(df, aes(x, y)) +
+  geom_hex() + # New geom!
+  coord_fixed()
+```
+
+
+# Plot the tibble using the color package
+```{r}
+ggplot(df, aes(x, y)) +
+  geom_hex() +
+  viridis::scale_fill_viridis() +
+  coord_fixed()
+```
+
+
+## Themes
+Themes allow you to change some or all of the non-data elements of your plot with a theme.
+
+ggplot2 has eight themes by default. Many more are included in add-on packages like ggthemes (https://github.com/jrnold/ggthemes), by Jeffrey Arnold.
+
+
+### The classic dark-on-light ggplot2 theme. May work better for presentations displayed with a projector.
+```{r}
+ggplot(mpg, aes(displ, hwy)) +
+  geom_point(aes(color = class)) +
+  geom_smooth(se = FALSE) +
+  theme_bw()
+```
+
+
+### Light theme. Makes the background all white with larger cells for the grid. Uses light grey lines and axes to direct more attention towards the data.
+```{r}
+ggplot(mpg, aes(displ, hwy)) +
+  geom_point(aes(color = class)) +
+  geom_smooth(se = FALSE) +
+  theme_light()
+```
+
+
+### A classic-looking theme, with x and y axis lines and no gridlines.
+```{r}
+ggplot(mpg, aes(displ, hwy)) +
+  geom_point(aes(color = class)) +
+  geom_smooth(se = FALSE) +
+  theme_classic()
+```
+
+### The dark cousin of theme_light(), with similar line sizes but a dark background. Useful to make thin coloured lines pop out.
+```{r}
+ggplot(mpg, aes(displ, hwy)) +
+  geom_point(aes(color = class)) +
+  geom_smooth(se = FALSE) +
+  theme_dark()
+```
+
+
+### The following is a theme that Ben wrote himself so his plots are the same style. We can do this to format our own as well
+
+```{r}
+theme (panel.border = element_blank(),
+       panel.grid.minor.x = element_blank(),
+       panel.grid.minor.y = element_blank(),
+       legend.position = "bottom",
+       legend.title = element_blank(),
+       legend.text = element_text(size=8),
+       panel.grid.major = element_blank(),
+       legend.key = element_blank(),
+       legend.background = element_blank(),
+       axis.text.y = element_text(colour="black"),
+       axis.text.x = element_text(colour="black"),
+       text = element_text(family="Arial"))
+```
+
+
+## Saving / Exporting Plots
+In general, the best way to make a single file will be to export it using the ggsave() function. 
+There are two main ways to get your plots out of R using ggplot2. ggsave() will save the most recent plot to your working directory. 
+
+### Create a plot. We will re-create the first plot from Workshop 1.
+```{r}
+ggplot(mpg, aes(displ, hwy)) + geom_point()
+```
+
+### Save your most recent plot
+```{r}
+ggsave("Mod4-Workshop2-plot.pdf")
+
+# Use width width and height arguments to play with dimensions of your plot
 ```
