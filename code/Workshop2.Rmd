@@ -327,7 +327,7 @@ ggplot(mpg, aes(displ, hwy)) + geom_point()
 
 ### Save your most recent plot
 ```{r}
-ggsave("Mod4-Workshop2-plot.pdf")
+ggsave("Mod4-Workshop2-plot.jpg")
 
 # Use width width and height arguments to play with dimensions of your plot
 ```
