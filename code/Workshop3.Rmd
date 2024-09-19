@@ -1,0 +1,29 @@
+---
+title: "MB5370 Module 04. Data Science in R 3"
+author: "Ivanya Johnson"
+date: "2024-09-09"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Workshop 3: Data Wrangling
+
+
+## Load packages
+
+Loading the tidyverse and ggplot2 packages. I set my preferences to use dplyr functions over others and loaded any other packages that come with ggplot and tidyverse.
+```{r}
+library(tidyverse)
+library(conflicted)
+library(dplyr)
+
+conflicts_prefer(dplyr::filter) # Use to set preferences
+conflicts_prefer(dplyr::lag) # Use to set preferences 
+
+library(ggthemes)
+
+library(ggplot2)
+```
