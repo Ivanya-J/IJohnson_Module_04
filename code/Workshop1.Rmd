@@ -1,5 +1,5 @@
 ---
-title: "MB5370 Module 04. Workshop 1 - Introduction"
+title: "MB5370 Module 04. Data Science in R"
 author: "Ivanya Johnson"
 output: html_document
 date: "2024-08-26"
@@ -10,20 +10,48 @@ knitr::opts_chunk$set(echo = TRUE)
 ```
 
 
-# Install and load tidyverse packages
+# Install and load tidyverse package
+
+These first lines of code include the package needed to use Git in RStudio and how we set our credentials.
 ```{r}
-## install.packages("tidyverse") ; Delete this line once installed
-library("tidyverse")
+# install.packages("devtools")
+# devtools::install_github("r-lib/conflicted")
+# gitcreds::gitcreds_set()
+```
+
+
+# Install and Load packages and Debugging
+
+Installing and loading the tidyverse packages. I set my preferences to use dplyr functions over others and loaded any other packages that come with ggplot and tidyverse.
+```{r}
+# install.packages("tidyverse")
+
+library(tidyverse)
+library(conflicted)
+library(dplyr)
+
+conflicts_prefer(dplyr::filter) # Use to set preferences
+conflicts_prefer(dplyr::lag) # Use to set preferences 
+
+library(ggthemes)
+
+library(ggplot2)
 ```
 
 
 # Load the data (mpg is built into ggplot2)
+
+I loaded the Palmer Penguin data as a backup. However, for this workshop, I used the mpg data provided in ggplot.
 ```{r}
 data(mpg)
+
+library(palmerpenguins) #Palmer Penguins Data
 ```
 
 
 # Quick data checks
+
+Look at the data to see what we're working with, columns, rows, etc.
 ```{r}
 head(mpg)
 glimpse(mpg)
@@ -32,9 +60,16 @@ summary(mpg)
 
 
 # Create first plot
+
+Using ggplot to create a point plot of the mpg data.
+ggplot pulls the data you set, but you must add layers or the plot will be empty
+ Mapping argument always with "aes"
 ```{r}
 ggplot(data = mpg) + 
-  geom_point(mapping = aes(x = disp, y = hwy))
+  geom_point(mapping = aes(x = displ, y = hwy))
+
+# displ is the engine size and hwy is the fuel efficiency
+# geom_point adds a layer of points to the plot
 ```
 
 The plot shows a negative relationship between engine size (displ) and fuel efficiency (hwy). In other words, cars with big engines use more fuel. What does this say about fuel efficiency and engine size?
