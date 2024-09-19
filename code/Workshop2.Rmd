@@ -248,7 +248,7 @@ ggplot(df, aes(x, y)) +
 ```
 
 
-# Plot the tibble using the color package
+### Plot the tibble using the color package
 ```{r}
 ggplot(df, aes(x, y)) +
   geom_hex() +
