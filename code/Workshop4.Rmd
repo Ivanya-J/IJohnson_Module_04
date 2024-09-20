@@ -13,15 +13,293 @@ knitr::opts_chunk$set(echo = TRUE)
 
 
 ## Installing / Loading Spatial Packages
+I have already installed these packages so I have hashtagged the installation code out.
 ```{r}
+# install.packages("sf")
+# install.packages("terra")
+# install.packages("tmap")
 
+library(tidyverse)
+
+library(ggplot2)
+
+library(sf) # simple features
+
+library(terra) # raster
+
+library(tmap) # Thematic maps are geographical maps in which spatial data distributions are visualized
+
+library(readr)
+```
+
+
+## Importing Copepod Data
+```{r}
+dat <- read_csv("../data-for-course/copepods_raw.csv") # Because I am in a different working directory, I need to tell R to go back and find the folder titled data-for-course to find the copepods csv
+
+dat
 ```
 
 
 ## Data Exploration
 
+### Check Coordinates
+```{r}
+ggplot(dat) +
+  aes(x = longitude, y = latitude, color = richness_raw) +
+  geom_point()
+```
+
+Add the stat_smooth function
+```{r}
+ggplot(dat, aes(x = latitude, y = richness_raw)) +
+  stat_smooth() +
+  geom_point()
+```
+
+
+### Get Going With Maps
+```{r}
+sdat <- st_as_sf(dat, coords = c("longitude", "latitude"),
+                 crs = 4326)
+```
+
+
+```{r}
+?st_as_sf
+```
+st_as_sf converts different data types to simple features
+  - coords gives the names of the columns that relate to the spatial coordinates (in order of X coordinate followed by Y coordinate)
+
+
+### Coordinate Reference System
+
+  - crs stands for 'coordinate reference system'
+  - CRS are required for 2D mapping to compensate for the lumpy, spherical (3D) nature of the earth
+
+```{r}
+crs4326 <- st_crs(4326)
+
+crs4326 # Look at the whole crs
+
+crs4326$Name
+
+crs4326$wkt
+```
+
+
+### Feature Collection (Points)
+```{r}
+sdat
+```
+
+
+### Cartography
+```{r}
+plot(sdat["richness_raw"])
+
+plot(sdat)
+```
+
+
+## Thematic Maps for Communication
+
+### Using tmap
+  - tm_dots to plot dots of the coordinates. Other options are tm_polygons and tm_symbols
+
+```{r}
+tm_shape(sdat) +
+  tm_dots(col = "richness_raw")
+```
+
+
+Use tmap_save to save the map to your working directory
+```{r}
+tmap_save(filename = "Richness-map.png",
+          width = 600, height = 600)
+```
+
+
+## Mapping Spatial Polygons as Layers
+
+### Loading Shapefiles
+Shapefiles are not ideal as they're inefficient at storing data and to save 1 shapefile you create multiple files. This means, a bit of the file might be lost if you transfer the data somewhere else.
+
+```{r}
+aus <- st_read("../data-for-course/spatial-data/Aussie/Aussie.shp")
+shelf <- st_read("../data-for-course/spatial-data/aus_shelf/aus_shelf.shp")
+
+aus
+shelf
+```
+
+
+### Mapping Polygons
+
+Blank map of Australia
+```{r}
+tm_shape(shelf) +
+  tm_polygons()
+```
+
+With this code, we see the data points
+```{r}
+tm_shape(shelf, bbox = sdat) +
+  tm_polygons() +
+  tm_shape(aus) +
+  tm_polygons() +
+  tm_shape(sdat) +
+  tm_dots()
+```
+
+
+## Exploring tmap
+
+Follow the instructions in the Help Window
+```{r}
+vignette('tmap-getstarted')
+```
+
+### Create a Map of the world
+The object World is a spatial object of class sf from the sf package; it is a data.frame with a special column that contains a geometry for each row, in this case polygons. In order to plot it in tmap, you first need to specify it with tm_shape. Layers can be added with the + operator, in this case tm_polygons. There are many layer functions in tmap, which can easily be found in the documentation by their tm_ prefix. See also ?'tmap-element'.
+
+```{r}
+data("World")
+
+tm_shape(World) +
+  tm_polygons("HPI")
+```
+
+### Interactive Maps
+Each map can be plotted as a static image or viewed interactively using "plot" and "view" modes, respectively. The mode can be set with the function tmap_mode, and toggling between the modes can be done with the ‘switch’ ttm() (which stands for toggle thematic map.
+
+```{r}
+tmap_mode("view")
+
+tm_shape(World) +
+  tm_polygons("HPI")
+```
+
+### Multiple shapes and layers
+A shape is a spatial object (with a class from sf, sp, stars, or raster). Multiple shapes and also multiple layers per shape can be plotted.
+
+```{r}
+data(World, metro, rivers, land)
+
+tmap_mode("plot")
+
+tm_shape(land) + 
+  tm_raster("elevation", palette = terrain.colors(10)) +
+  tm_shape(World) +
+  tm_borders("white", lwd = .5) +
+  tm_text("iso_a3", size = "AREA") +
+  tm_shape(metro) +
+  tm_symbols(col = "red", size = "pop2020", scale = .5) +
+  tm_legend(show = FALSE)
+```
+
+### Facets
+Facets can be created in three ways:
+
+  1. By assigning multiple variable names to one aesthetic (in this example the first argument of tm_polygons:
+```{r}
+tmap_mode("view")
+
+tm_shape(World) +
+  tm_polygons(c("HPI", "economy")) +
+  tm_facets(sync = TRUE, ncol = 2)
+```
+
+
+  2. By splitting the spatial data with the by argument of tm_facets:
+```{r}
+tmap_mode("plot")
+
+data(NLD_muni)
+
+NLD_muni$perc_men <- NLD_muni$pop_men / NLD_muni$population * 100
+
+tm_shape(NLD_muni) +
+  tm_polygons("perc_men", palette = "RdYlBu") +
+  tm_facets(by = "province")
+```
+
+
+  3. By using the tmap_arrange function:
+```{r}
+tmap_mode("plot")
+
+data(NLD_muni)
+
+tm1 <- tm_shape(NLD_muni) + tm_polygons("population", convert2density = TRUE)
+
+tm2 <- tm_shape(NLD_muni) + tm_bubbles(size = "population")
+
+tmap_arrange(tm1, tm2)
+```
+
+
+### Basemaps and Overlay Tile Maps
+Tiled basemaps can be added with the layer function tm_basemap. Semi-transparent overlay maps (for example annotation labels) can be added with tm_tiles.
+
+```{r}
+tmap_mode("view")
+
+tm_basemap("Stamen.Watercolor") +
+  tm_shape(metro) + tm_bubbles(size = "pop2020", col = "red") +
+  tm_tiles("Stamen.TonerLabels")
+```
+
+Note: For some reason, the above code does not produce the map. it only produces the red bubbles!
+
+
+### Options and Styles
+The functions tm_layout and tm_view are used to specify the map layout and the interactive aspects respectively. These functions can be used in the same way as the layer functions.
+
+```{r}
+tmap_mode("plot")
+
+tm_shape(World) +
+  tm_polygons("HPI") +
+  tm_layout(bg.color = "skyblue", inner.margins = c(0, .02, .02, .02))
+```
+
+
+These options, as well as a couple of others, can also be set within with tmap_options, which works in the same way as the base R function options. The main advantage is that these options are set globally, so they do not have to be specified in each map, for the duration of the session.
+
+```{r}
+tmap_options(bg.color = "black", legend.text.color = "white")
+
+tm_shape(World) +
+  tm_polygons("HPI", legend.title = "Happy Planet Index")
+```
+
+
+A style is a certain configuration of the tmap options.
+```{r}
+tmap_style("classic")
+
+tm_shape(World) +
+  tm_polygons("HPI", legend.title = "Happy Planet Index")
+
+tmap_options_diff()
+
+tmap_options_reset()
+```
+
 
 ## Exporting Maps
+The following is the code used to save the last map created
 
+```{r}
+?tmap_save
 
-## Appendix A: Tibbles
+tm <- tm_shape(World) +
+    tm_polygons("HPI", legend.title = "Happy Planet Index")
+
+## save an image ("plot" mode)
+tmap_save(tm, filename = "world_map.png")
+
+## save as stand-alone HTML file ("view" mode)
+tmap_save(tm, filename = "world_map.html")
+```
