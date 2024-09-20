@@ -262,8 +262,8 @@ stocks <- tibble(
   return = c(1.88, 0.59, 0.92, 0.17)
 )
 
-stocks %>% 
-  pivot_wider(names_from = year, values_from = return) %>% 
+stocks %>%
+  pivot_wider(names_from = year, values_from = return) %>%
   pivot_longer(`2015`:`2016`, names_to = "year", values_to = "return")
 ```
 
@@ -271,9 +271,10 @@ The variables for half and year are numeric while return is an integer. However,
 
 
  2. Why does this code fail?
+ Note: I needed to hashtag the code out to knit this file.
 ```{r}
-table4a %>%
-  pivot_longer(c(1999, 2000), names_to = "year", values_to = "cases")
+# table4a %>%
+#  pivot_longer(c(1999, 2000), names_to = "year", values_to = "cases")
 
 # Error: Can't select columns past the end. Locations 1999 and 2000 don't exist. There are only 3 columns. To select the columns 1999 and 200, you need (``) or provide the information as a string. 
 ```
