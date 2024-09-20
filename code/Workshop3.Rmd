@@ -88,7 +88,7 @@ Each of the three sample tables show the same data: cases of TB per country per 
 
 2. Sketch out the processes you'd use to calculate the 'rate' for table2 and table3. You will need to perform four operations.
 
- a.Extract the number of TB cases per country per year
+ a. Extract the number of TB cases per country per year
  
     - For table 2 I would use pivot_wider to split the column type into two separate columns (cases and population).For table 3, use the separate function to separate the rate column into cases and population.
 

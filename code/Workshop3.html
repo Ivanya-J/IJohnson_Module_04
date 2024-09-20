@@ -526,9 +526,14 @@ correct format.</p>
 <li>Sketch out the processes you’d use to calculate the ‘rate’ for
 table2 and table3. You will need to perform four operations.</li>
 </ol>
-<p>a.Extract the number of TB cases per country per year</p>
-<pre><code>- For table 2 I would use pivot_wider to split the column type into two separate columns (cases and population).For table 3, use the separate function to separate the rate column into cases and population.</code></pre>
-<ol start="2" style="list-style-type: lower-alpha">
+<ol style="list-style-type: lower-alpha">
+<li><p>Extract the number of TB cases per country per year</p>
+<ul>
+<li>For table 2 I would use pivot_wider to split the column type into
+two separate columns (cases and population).For table 3, use the
+separate function to separate the rate column into cases and
+population.</li>
+</ul></li>
 <li><p>Extract the matching population per country per year</p>
 <ul>
 <li>Once we have separate columns, I would then need to pivot longer by
