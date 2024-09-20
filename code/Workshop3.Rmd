@@ -347,45 +347,344 @@ table5 %>%
 
 
 ## Handling Missing Values
-
+An 'NA' (explicit absence) indicates the presence of absent data, and a blank cell just indicates the absence of data (implicit absence).
 
 ### Explicit Missing Values
+
+Create a tibble
+```{r}
+treatment <- tribble(
+  ~person, ~treatment, ~response,
+  #------|-----------|-----------
+  "Derrick Whitmore", 1, 7,
+  NA, 2, 10,
+  NA, 3, NA,
+  "Katherine Burke", 1, 4
+)
+```
+
+
+Using the following function, you fill the missing values. This treatment is sometimes called "last observation carried forward" (locf).
+```{r}
+treatment |>
+  fill(everything())
+```
 
 
 ### Fixed Values
 
+Use coalesce() when missing values represent some fixed and known value, most commonly 0 to replace the NA.
+```{r}
+x <- c(1, 4, 5, 7, NA)
+coalesce(x, 0)
+```
+
+This is for the opposite problem above. Some other concrete value actually represents a missing value. This happens when data is generated from an older software that can't properly represent missing values so it uses something like 99 or -999 in place of the missing value.
+```{r}
+x <- c(1, 4, 5, 7, -99)
+na_if(x, -99)
+```
+
 
 ### NaN
+NaN = Not a Number and behaves the same as NA, but in some cases you may need to distinguish it using is.nan(x)
+
+NaN is most common when performing a mathematical operation that has an indeterminate result.
+```{r}
+x <- c(NA, NaN)
+x * 10
+x == 1
+is.na(x)
+```
 
 
 ### Implicit Missing Values
 
+Create a tibble
+```{r}
+stocks <- tibble(
+  year  = c(2020, 2020, 2020, 2020, 2021, 2021, 2021),
+  qtr   = c(1, 2, 3, 4, 2, 3, 4),
+  price = c(1.88, 0.59, 0.35, NA, 0.92, 0.17, 2.66)
+)
+```
 
-## Import Data into R
+Two missing observations: Price in the 4th quarter of 2020 is explicitly missing, because its value is NA. Price for the 1st quarter of 2021 is implicitly missing, because it does not appear in the data set.
+
+
+Pivoting the tibble
+```{r}
+stocks |>
+  pivot_wider(
+    names_from = qtr,
+    values_from = price
+  )
+```
+
+Advanced Note: See link in doc on how to use tidyr::complete() to generate missing values in special cases
 
 
 ## CSV Files
+.csv = Comma-separated values (data values are separated by commas)
+
+Things to note:
+   - The first row or "header row" gives the column names
+
+   - The following six rows provide the data
+
+Open the help menu in R
+```{r}
+?read_csv
+```
+
+Reading and loading a CSV file
+```{r}
+students <- read_csv("https://pos.it/r4ds-students-csv")
+
+students
+```
+
+Because N/A was manually input in the data, we have to tell R to read it as an actual NA value.
+```{r}
+students <- read_csv("https://pos.it/r4ds-students-csv", na = c("N/A", ""))
+
+students
+```
+
+Changing the names of our headers
+```{r}
+students |>
+  rename(
+    student_id = `Student ID`,
+    full_name = `Full Name`
+  )
+```
 
 
 ## Exercise 5
+ 1. Identify what is wrong with each of the following inline CSV files. What happens when you run the code?
+ 
+```{r}
+read_csv("a,b\n1,2,3\n4,5,6")
 
+# Needs a 3rd column header.
+```
 
-## Relational Data
+```{r}
+read_csv("a,b,c\n1,2\n1,2,3,4")
 
+# Missing one value on the 2nd line so it shows as NA.
+```
+
+```{r}
+read_csv("a,b\n\"1")
+
+# 2nd value is missing and the 2nd quotation mark is missing.
+```
+
+```{r}
+read_csv("a,b\n1,2\na,b")
+
+# There are character and numeric types; you need to specify the columns better.
+```
+
+```{r}
+read_csv("a;b\n1;3")
+
+# R reads it as ; delimited because it's separated by semicolons. Need to use read_csv2
+```
 
 ## Installing and Loading New Data
 
+Loading the new package. I have hashtagged the install code out because I already have the package.
+```{r}
+# install.packages("nycflights13")
+library(nycflights13)
+```
+
+Looking at the various data sets within nycflights13
+```{r}
+airlines # Full carrier name from its abbreviated code
+
+airports # Information about each airport
+
+planes # Information about each plane, id by its tailnum
+
+weather # Gives weather at each NYC airport for each hour
+```
+
+  - Flights connects to planes via a single variable, tailnum.
+
+  - Flights connects to airlines through the carrier variable.
+
+  - Flights connects to airports in two ways: via origin and dest variables.
+
+  - Flights connects to weather via origin (the location), and year, month, day and hour (the time).
+
 
 ### Joining Data Sets
+Identify the keys to join the data sets
+
+  - Primary key uniquely ids an observation in its own table.
+  - Foreign key uniquely ids an observation in another table
+
+Filtering data in each data set
+```{r}
+planes %>%
+  count(tailnum) %>%
+  filter(n > 1)
+
+weather %>%
+  count(year, month, day, hour, origin) %>%
+  filter(n > 1)
+
+flights %>%
+  count(year, month, day, flight) %>%
+  filter(n > 1)
+
+flights %>%
+  count(year, month, day, tailnum) %>%
+  filter(n > 1)
+```
 
 
 ### Mutating Joins
+Now that we have filtered the data, we can use the mutate() function to create new data
+
+Create a new data set
+```{r}
+flights2 <- flights %>%
+  select(year:day, hour, origin, dest, tailnum, carrier)
+
+flights2
+```
+
+Two methods to arrange the data. Either the mutate function or left_join()
+```{r}
+flights2 %>%
+  select(-origin, -dest) %>%
+  left_join(airlines, by = "carrier")
+
+flights2 %>%
+  select(-origin, -dest) %>%
+  mutate(name = airlines$name[match(carrier, airlines$carrier)])
+```
+
+More practice with join
+```{r}
+x <- tribble(
+  ~key, ~val_x,
+  1, "x1",
+  2, "x2",
+  3, "x3"
+)
+
+y <- tribble(
+  ~key, ~val_y,
+  1, "y1",
+  2, "y2",
+  4, "y3"
+)
+
+x %>%
+  inner_join(y, by = "key")
+```
+
+More practice with join
+```{r}
+x <- tribble(
+  ~key, ~val_x,
+  1, "x1",
+  2, "x2",
+  2, "x3",
+  1, "x4"
+)
+
+y <- tribble(
+  ~key, ~val_y,
+  1, "y1",
+  2, "y2"
+)
+
+left_join(x, y, by = "key")
+```
+
+More practice with join
+```{r}
+x <- tribble(
+  ~key, ~val_x,
+  1, "x1",
+  2, "x2",
+  2, "x3",
+  3, "x4"
+)
+
+y <- tribble(
+  ~key, ~val_y,
+  1, "y1",
+  2, "y2",
+  2, "y3",
+  3, "y4"
+)
+
+left_join(x, y, by = "key")
+```
+
+
+Use join on the flights2 data set we created
+```{r}
+flights2 %>%
+  left_join(weather)
+
+flights2 %>%
+  left_join(planes, by = "tailnum")
+
+flights2 %>%
+  left_join(airports, c("dest" = "faa"))
+
+flights2 %>%
+  left_join(airports, c("origin" = "faa"))
+```
 
 
 ## Pipes for Readable Workflows
+This is just used as an example. None of the code (below) will actually run. The goal is to show how we can write a kids story in R using the piping function, rather than other methods
 
-
-### Install and Load New Package
+Writing a kid's story
 ```{r}
+# install.packages("magrittr")
+library(magrittr)
 
+# Little Bunny Foo Foo
+# Went Hopping Through The Forest
+# Scooping Up The Field Mice
+# And Bopping Them On The Head
+
+# Create the story and set it
+ # foo_foo <- little_bunny()
+
+# Saving each step as a new object 
+ # foo_foo_1 <- hop(foo_foo, through = forest)
+ # foo_foo_2 <- scoop(foo_foo_1, up = field_mice)
+ # foo_foo_3 <- bop(foo_foo_2, on = head)
+
+# Overwrite the original object instead of creating intermediate objects at each step
+ # foo_foo <- hop(foo_foo, through = forest)
+ # foo_foo <- scoop(foo_foo, up = field_mice)
+ # foo_foo <- bop(foo_foo, on = head)
+
+# String the functions and calls together
+ # bop(
+  # scoop(
+    # hop(foo_foo, through = forest),
+    # up = field_mice
+#  ), 
+ # on = head
+# )
+
+# USE A PIPE
+# foo_foo %>%
+  # hop(through = forest) %>%
+  # scoop(up = field_mice) %>%
+  # bop(on = head)
 ```

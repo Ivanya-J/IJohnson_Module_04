@@ -1,0 +1,27 @@
+---
+title: "MB5370 Module 04. Data Science in R 4"
+author: "Ivanya Johnson"
+date: "2024-09-10"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Workshop 4: Spatial Data in R
+
+
+## Installing / Loading Spatial Packages
+```{r}
+
+```
+
+
+## Data Exploration
+
+
+## Exporting Maps
+
+
+## Appendix A: Tibbles
