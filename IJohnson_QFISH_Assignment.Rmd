@@ -9,22 +9,40 @@ output: html_document
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-## R Markdown
+# QFish Shark Control Program Data
 
-This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+To download data go to:
+https://qfish.fisheries.qld.gov.au/query/number-caught-by-area-calendar-year-and-species-group/table
 
-When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
 
-```{r cars}
-summary(cars)
+## Install and Load Packages
+
+Be sure to install the following packages if they are not already installed.
+```{r Packages}
+# install.packages("janitor")
+
+library(janitor)
+library(tidyverse)
+library(readr)
 ```
 
-## Including Plots
 
-You can also embed plots, for example:
+## Load Data
+```{r}
+totalcatch <- # Name data frame
+  read_csv("Shark Catch.csv") |> # Select data to import
+  row_to_names(row_number = 1) |> # Select the row to use for variable names of data frame.
+  clean_names() # Creates unique names for the variables. If not included, R will give variables with common names the same name
 
-```{r pressure, echo=FALSE}
-plot(pressure)
+totalcatch <- subset(totalcatch, select = )
+
+head(totalcatch)
+summary(totalcatch)
 ```
 
-Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
+
+## Tidying Data
+
+```{r}
+
+```
