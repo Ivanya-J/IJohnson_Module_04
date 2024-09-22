@@ -27,8 +27,6 @@ library(tidyverse)
 library(readr)
 library(ggplot2)
 library(ggthemes)
-library(ggmap)
-library(sf)
 ```
 
 
