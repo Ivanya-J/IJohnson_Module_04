@@ -24,6 +24,8 @@ Be sure to install the following packages if they are not already installed.
 library(janitor)
 library(tidyverse)
 library(readr)
+library(ggplot2)
+library(ggthemes)
 ```
 
 
@@ -31,18 +33,143 @@ library(readr)
 ```{r}
 totalcatch <- # Name data frame
   read_csv("Shark Catch.csv") |> # Select data to import
-  row_to_names(row_number = 1) |> # Select the row to use for variable names of data frame.
+  row_to_names(row_number = 2, remove_rows_above = FALSE) |> # Select the row to use for variable names of data frame.
   clean_names() # Creates unique names for the variables. If not included, R will give variables with common names the same name
 
-totalcatch <- subset(totalcatch, select = )
+head(totalcatch) # Look at data
 
-head(totalcatch)
-summary(totalcatch)
+totalcatch <- subset(totalcatch, select = -(na_2)) # Removing empty column
+
+summary(totalcatch) # Summary of the data
 ```
 
 
 ## Tidying Data
 
+Now, we need to separate the data into individual data sets. These data sets will be for the categories of species (sharks, mammals, turtles, other).
 ```{r}
+# Shark Catch
+sharks <- # Creates a new data frame titled sharks
+  totalcatch |>
+  select(area | contains("shark")) |>
+  row_to_names(row_number = 1) |>
+  rename(area = 1) |>
+  mutate(across(-c(area), as.numeric))
 
+# Turtle Catch
+turtles <-
+  totalcatch |>
+  select(area | contains("turtle")) |> # Select the column titled area and any column with the word "turtle"
+  row_to_names(row_number = 1) |> # This function elevates the selected row (row = 1) to become the new column names
+  rename(area = 1) |> 
+  mutate(across(-c(area), as.numeric)) # Mutates the columns selected to input data values and make them numeric
+
+# Mammal Catch
+mammals <-
+  totalcatch |>
+  select(area | contains("mammal")) |>
+  row_to_names(row_number = 1) |>
+  rename(area = 1) |>
+  mutate(across(-c(area), as.numeric))
+
+# Others Catch
+other <-
+  totalcatch |>
+  select(area | contains("other")) |>
+  row_to_names(row_number = 1) |>
+  rename(area = 1) |>
+  mutate(across(-c(area), as.numeric))
+
+head(sharks)
+head(turtles)
+head(mammals)
+head(other)
+```
+
+
+## Pivot Data Tables
+
+The tables we created for each group is called a wide table. We want to pivot them longer so we have two columns labeled year and count.
+```{r}
+catch_sharks <-
+  sharks |>
+  pivot_longer(!area, names_to = "Year",
+               values_to = "Count")
+
+catch_turtles <-
+  turtles |>
+  pivot_longer(!area, names_to = "Year",
+               values_to = "Count")
+
+catch_mammals <-
+  mammals |>
+  pivot_longer(!area, names_to = "Year",
+               values_to = "Count")
+
+catch_other <-
+  other |>
+  pivot_longer(!area, names_to = "Year",
+               values_to = "Count")
+```
+
+
+## Making Stats Tibbles
+
+You don't HAVE to do this, but it helps to filter out any unwanted variables, columns, or rows. It also makes it easier to combine the data together.
+```{r}
+sharks_stats <- 
+catch_sharks |>
+  filter(area != "Grand Total") |> # Filters out all the 'Grand Total' rows under the area column
+  group_by(Year) |>
+  summarise(Mean = mean(Count, na.rm = TRUE), # Calculate the mean of the values in the row called Count
+            SD = sd(Count, na.rm = TRUE)) |> # Calculates the standard deviation
+  mutate(Year = as.numeric(Year)) |>
+  mutate(Taxa = "Sharks")
+
+turtles_stats <- 
+catch_turtles |>
+  filter(area != "Grand Total") |>
+  group_by(Year) |>
+  summarise(Mean = mean(Count, na.rm = TRUE),
+            SD = sd(Count, na.rm = TRUE)) |>
+  mutate(Year = as.numeric(Year)) |>
+  mutate(Taxa = "Turtles")
+
+mammals_stats <- 
+catch_mammals |>
+  filter(area != "Grand Total") |>
+  group_by(Year) |>
+  summarise(Mean = mean(Count, na.rm = TRUE),
+            SD = sd(Count, na.rm = TRUE)) |>
+  mutate(Year = as.numeric(Year)) |>
+  mutate(Taxa = "Mammals")
+
+other_stats <- 
+catch_other |>
+  filter(area != "Grand Total") |>
+  group_by(Year) |>
+  summarise(Mean = mean(Count, na.rm = TRUE),
+            SD = sd(Count, na.rm = TRUE)) |>
+  mutate(Year = as.numeric(Year)) |>
+  mutate(Taxa = "Other")
+```
+
+
+## Combine the new statistical tables
+
+Now it's time to combine the new stats into one!
+```{r}
+Total_stats <- 
+  bind_rows(sharks_stats, turtles_stats,
+            mammals_stats, other_stats)
+```
+
+## Plot Data
+
+Now that we have tidy'd, subset, and combined our data we can make plots! The first plot we will make is a line chart showcasing the mean capture of each taxa.
+```{r}
+ggplot(data = Total_stats, aes(x =Year, y = Mean, fill = Taxa, shape = Taxa), color = "black") +
+  geom_line() +
+  geom_pointrange(aes(ymin = Mean - SD, ymax = Mean + SD)) +
+    scale_shape_manual(values = c(21, 22, 23, 24))
 ```
