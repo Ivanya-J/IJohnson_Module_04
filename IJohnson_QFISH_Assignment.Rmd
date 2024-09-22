@@ -20,12 +20,15 @@ https://qfish.fisheries.qld.gov.au/query/number-caught-by-area-calendar-year-and
 Be sure to install the following packages if they are not already installed.
 ```{r Packages}
 # install.packages("janitor")
+# install.packages("ggmap")
 
 library(janitor)
 library(tidyverse)
 library(readr)
 library(ggplot2)
 library(ggthemes)
+library(ggmap)
+library(sf)
 ```
 
 
@@ -94,22 +97,34 @@ The tables we created for each group is called a wide table. We want to pivot th
 catch_sharks <-
   sharks |>
   pivot_longer(!area, names_to = "Year",
-               values_to = "Count")
+               values_to = "Count") |>
+  filter(area != "Grand Total")
+
+catch_sharks[is.na(catch_sharks)] <- 0 # Make Na values = 0
 
 catch_turtles <-
   turtles |>
   pivot_longer(!area, names_to = "Year",
-               values_to = "Count")
+               values_to = "Count") |>
+  filter(area != "Grand Total")
+
+catch_turtles[is.na(catch_turtles)] <- 0 # Make Na values = 0
 
 catch_mammals <-
   mammals |>
   pivot_longer(!area, names_to = "Year",
-               values_to = "Count")
+               values_to = "Count") |>
+  filter(area != "Grand Total")
+
+catch_mammals[is.na(catch_mammals)] <- 0 # Make Na values = 0
 
 catch_other <-
   other |>
   pivot_longer(!area, names_to = "Year",
-               values_to = "Count")
+               values_to = "Count") |>
+  filter(area != "Grand Total")
+
+catch_other[is.na(catch_other)] <- 0 # Make Na values = 0
 ```
 
 
@@ -124,7 +139,7 @@ catch_sharks |>
   summarise(Mean = mean(Count, na.rm = TRUE), # Calculate the mean of the values in the row called Count
             SD = sd(Count, na.rm = TRUE)) |> # Calculates the standard deviation
   mutate(Year = as.numeric(Year)) |>
-  mutate(Taxa = "Sharks")
+  mutate(Species = "Sharks")
 
 turtles_stats <- 
 catch_turtles |>
@@ -133,7 +148,7 @@ catch_turtles |>
   summarise(Mean = mean(Count, na.rm = TRUE),
             SD = sd(Count, na.rm = TRUE)) |>
   mutate(Year = as.numeric(Year)) |>
-  mutate(Taxa = "Turtles")
+  mutate(Species = "Turtles")
 
 mammals_stats <- 
 catch_mammals |>
@@ -142,7 +157,7 @@ catch_mammals |>
   summarise(Mean = mean(Count, na.rm = TRUE),
             SD = sd(Count, na.rm = TRUE)) |>
   mutate(Year = as.numeric(Year)) |>
-  mutate(Taxa = "Mammals")
+  mutate(Species = "Mammals")
 
 other_stats <- 
 catch_other |>
@@ -151,7 +166,7 @@ catch_other |>
   summarise(Mean = mean(Count, na.rm = TRUE),
             SD = sd(Count, na.rm = TRUE)) |>
   mutate(Year = as.numeric(Year)) |>
-  mutate(Taxa = "Other")
+  mutate(Species = "Other")
 ```
 
 
@@ -164,12 +179,39 @@ Total_stats <-
             mammals_stats, other_stats)
 ```
 
-## Plot Data
+## Plot Data 1
 
 Now that we have tidy'd, subset, and combined our data we can make plots! The first plot we will make is a line chart showcasing the mean capture of each taxa.
 ```{r}
-ggplot(data = Total_stats, aes(x =Year, y = Mean, fill = Taxa, shape = Taxa), color = "black") +
+ggplot(data = Total_stats, aes(x =Year, y = Mean, fill = Species, shape = Species), color = "black") +
   geom_line() +
   geom_pointrange(aes(ymin = Mean - SD, ymax = Mean + SD)) +
-    scale_shape_manual(values = c(21, 22, 23, 24))
+    scale_shape_manual(values = c(21, 22, 23, 24)) +
+  theme_clean() +
+  labs(
+    title = "Mean Number of Marine Organisms Caught in
+    the Shark Control Program (2001 - 2024)",
+    caption = "Data source: https://qfish.fisheries.qld.gov.au"
+  )
+
+ggsave("Mean Organisms Caught.jpg")
+```
+
+
+## Plot Data 2
+
+For my analysis, I am particularly interested in the shark data by region. is there a particular area where sharks are caught more frequently? We can plot this as well
+```{r}
+ggplot(data = catch_sharks, aes(x = Year, y = Count, group = area)) +
+  geom_smooth(se = F) +
+  theme_classic() +
+  labs(
+    title = "Sharks Caught in Shark Control Program by Area",
+    x = "Year", y = "Total Sharks Caught",
+     fill = "Species Group",
+    caption = "Data Source: https://qfish.fisheries.qld.gov.au") +
+  facet_wrap(~area, scales="free_y") + # Facet wrap so each location has its own plot. free_y tells R to make y axis variable, this makes the axis more relevant to each plot.
+  theme(axis.text.x = element_text(angle = 90, size = 5, vjust = 0.5)) # Change the angle of x axis labels.
+
+ggsave("Sharks Caught By Area.jpg")
 ```
